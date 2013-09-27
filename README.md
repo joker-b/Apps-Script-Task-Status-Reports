@@ -3,6 +3,8 @@ Apps-Script-Task-Status-Reports
 
 Send periodic email reports about ongoing tasks in your Google Tasks lists. A one-file tool for Google Apps Script.
 
+(Note: Google Tasks is an "Advanced API" usage, you'll need to explicitly turn it on via the API Control panel -- instructions should appear the first time you run the script)
+
 This assumes that you are keeping your task list in Google Calendar/Google Tasks (I also use the "Jorte" Android calendar, which integrates to Google Tasks)
 
 Code the file "Code.gs" into your own task status project in Google Drive.
