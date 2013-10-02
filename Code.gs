@@ -13,29 +13,28 @@
 //    in my standard usage I call "send_all()" on a weekly trigger: every Friday at 4PM
 //
 
+var OFFICE = "joker-b@bigcorp.com";
+var HOME = "joker.b+reports@gmail.com";
+
 function send_all() {
-  weekly_report("Caustic","some.dude@bigcorp.com");
-  weekly_report("vuMondo","some.dude+reports@gmail.com");
-  weekly_report("House","some.dude+reports@gmail.com");
-  weekly_report("Default List","some.dude+reports@gmail.com");
+  weekly_report("Caustic",OFFICE);
+  weekly_report("Classwork",HOME);
+  weekly_report("Default List",HOME);
 }
 
 // single-list calls (mostly for debugging)
-function send_vmOnly() {
-  weekly_report("vuMondo","some.dude+reports@gmail.com");
-}
 function send_cOnly() {
-  weekly_report("Caustic","some.dude@bigcorp.com");
+  weekly_report("Caustic",OFFICE);
 }
 function send_defOnly() {
-  weekly_report("Default List","some.dude+reports@gmail.com");
+  weekly_report("Default List",HOME);
 }
 
 // daily report -- in my usage, I set up FIVE weekly triggers, MTWTF at 9AM -- this report
 //     reminds my team &  I what needs to be done each morning
 
 function daily_caustic() {
-  daily_report("Caustic","some.dude@bigcorp.com");
+  daily_report("Caustic",OFFICE);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -69,6 +68,15 @@ function describe_task(T) {
   Logger.log('Due '+T.getDue());
 }
 
+// advertise
+function footer_text() {
+  var ft = '<p style="font-size:10px;color:#555555;font-style:italic;">';
+  ft += 'Robots love to <a href="https://github.com/joker-b/Apps-Script-Task-Status-Reports" target="_blank">make more robots!</a> ';
+  ft += 'Check out this and my other GitHub Google Apps projects.';
+  ft += '</p>\n';
+  return ft;
+}
+
 //////////////////////////////////////////////////////////
 
 //
@@ -94,7 +102,7 @@ function add_to_message(Msg,Items,Label) {
   }
   hasCompleted = (n>0);
   hasPending = ((Items.length-n)>0);
-  Msg['htmlBody'] += "<tr><th><i>Pending</i></th><th><i>Completed</i></th></tr>\n";
+  Msg['htmlBody'] += "<tr style=\"font-style:italic;\"><th>Pending</th><th>Completed</th></tr>\n";
   Msg['htmlBody'] += "<tr>";
   Msg['htmlBody'] += "<td valign=\"top\" style=\"padding: 8px;max-width=300px;\"><dl>";
   if (hasPending) {
@@ -111,13 +119,13 @@ function add_to_message(Msg,Items,Label) {
         Msg['htmlBody'] += "<dt>"+t+"</dt>\n";
         desc = Items[i].getNotes();
         if ((desc != undefined) && (desc > "")) {
-            Msg['htmlBody'] += "<dd style=\"color:#999999;\"><i>"+desc+"</i></dd>\n";
+            Msg['htmlBody'] += "<dd style=\"color:#999999;font-style:italic;\">"+desc+"</dd>\n";
         }
         spc = "<BR />";
       }
     }
   } else {
-    Msg['htmlBody'] += "<dd><i>(none)</i></dd>\n";
+    Msg['htmlBody'] += '<dd style="font-style:italic;">(none)</dd>\n';
   }
   Msg['htmlBody'] += "</dl></td>";
   Msg['htmlBody'] += "<td valign=\"top\" STYLE=\"color:#aaaaaa;text-decoration:line-through; padding: 8px;max-width: 300px;\"><dl>";
@@ -137,13 +145,13 @@ function add_to_message(Msg,Items,Label) {
         Msg['htmlBody'] += "<dt>"+t+"</dt>\n";
         desc = Items[i].getNotes();
         if ((desc != undefined) && (desc > "")) {
-            Msg['htmlBody'] += "<dd style=\"color:#999999;\"><i>"+desc+"</i></dd>\n";
+            Msg['htmlBody'] += "<dd style=\"color:#999999;font-style:italic;\">"+desc+"</dd>\n";
         }
         n += 1;
       }
     }
   } else {
-    Msg['htmlBody'] += "<dd><i>(none)</i></dd>\n";
+    Msg['htmlBody'] += '<dd style="font-style:italic;">(none)</dd>\n';
   }
   Msg['htmlBody'] += "</dl></td>"
   Msg['htmlBody'] += "</tr>";
@@ -183,7 +191,9 @@ function weekly_report(ListName,Destination)
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':now.toISOString(), 'dueMax': later.toISOString()});
   items = tasks.getItems();
   message = add_to_message(message,items,"Upcoming Week");
-  message['htmlBody'] += "</table></div>";
+  message['htmlBody'] += "</table>\n";
+  message['htmlBody'] += footer_text();
+  message['htmlBody'] += "</div>";
   MailApp.sendEmail(message);
   Logger.log('Sent email:\n'+message['body']);
   Logger.log('Sent email:\n'+message['htmlBody']);
@@ -219,7 +229,9 @@ function daily_report(ListName,Destination)
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':before2.toISOString(), 'dueMax': before.toISOString()});
   items = tasks.getItems();
   message = add_to_message(message,items,"Yesterday's Schedule");
-  message['htmlBody'] += "</table></div>";
+  message['htmlBody'] += "</table>\n";
+  message['htmlBody'] += footer_text();
+  message['htmlBody'] += "</div>";
   //
   MailApp.sendEmail(message);
   Logger.log('Sent email:\n'+message['body']);
@@ -248,3 +260,6 @@ function add_tl(SomeName) {
   var created = Tasks.Tasklists.insert(newTaskList);
   return created;
 }
+
+
+//// eof ///
