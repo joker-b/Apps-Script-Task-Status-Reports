@@ -13,16 +13,19 @@
 //    in my standard usage I call "send_all()" on a weekly trigger: every Friday at 4PM
 //
 
-var OFFICE = "joker-b@bigcorp.com";
-var HOME = "joker.b+reports@gmail.com";
+var OFFICE = "kevin.bjorke@imgtec.com";
+var HOME = "kevin.bjorke+reports@gmail.com";
 
 function send_all() {
   weekly_report("Caustic",OFFICE);
-  weekly_report("Classwork",HOME);
+  weekly_report("vuMondo",HOME);
   weekly_report("Default List",HOME);
 }
 
 // single-list calls (mostly for debugging)
+function send_vmOnly() {
+  weekly_report("vuMondo",HOME);
+}
 function send_cOnly() {
   weekly_report("Caustic",OFFICE);
 }
@@ -62,18 +65,18 @@ function list_by_name(ListName) {
   return id;
 }
 
-// debugging function
+// debugging function /////////////////////////
 function describe_task(T) {
   Logger.log(T.getTitle());
   Logger.log('Due '+T.getDue());
 }
 
-// advertise
+// advertise //////////////////////
 function footer_text() {
-  var ft = '<p style="font-size:10px;color:#555555;font-style:italic;">';
+  var ft = '<tr align="center"><td style="background-color:#dddddd;margin-left:auto;margin-right:auto;padding:5px;font-size:smaller;font-style:italic;" colspan="2">';
   ft += 'Robots love to <a href="https://github.com/joker-b/Apps-Script-Task-Status-Reports" target="_blank">make more robots!</a> ';
-  ft += 'Check out this and my other GitHub Google Apps projects.';
-  ft += '</p>\n';
+  ft += 'Check out my GoogleApps projects.';
+  ft += '</td></tr>\n';
   return ft;
 }
 
@@ -90,7 +93,7 @@ function add_to_message(Msg,Items,Label) {
     return Msg;
   }
   Msg['body'] += Label+":\n";
-  Msg['htmlBody'] += "<tr><td style=\"background-color:#dddddd; padding: 5px;\" colspan=\"2\"><strong>"+Label+"</strong></td></tr>\n";
+  Msg['htmlBody'] += "<tr><td style=\"background-color:#dddddd;font-weight:bolder;padding:5px;margin-left:auto;margin-right:auto;\" colspan=\"2\">"+Label+"</td></tr>\n";
   var n, i, t, c, desc, hasCompleted, hasPending, spc, cl;
   n = 0;
   for (i=0; i<Items.length; i+=1) {
@@ -102,9 +105,9 @@ function add_to_message(Msg,Items,Label) {
   }
   hasCompleted = (n>0);
   hasPending = ((Items.length-n)>0);
-  Msg['htmlBody'] += "<tr style=\"font-style:italic;\"><th>Pending</th><th>Completed</th></tr>\n";
+  Msg['htmlBody'] += "<tr style=\"background-color:#eaeaea;font-style:italic;\"><th>Pending</th><th>Completed</th></tr>\n";
   Msg['htmlBody'] += "<tr>";
-  Msg['htmlBody'] += "<td valign=\"top\" style=\"padding: 8px;max-width=300px;\"><dl>";
+  Msg['htmlBody'] += "<td valign=\"top\" style=\"padding:8px;max-width:300px;background-color:#f8f8f8;\"><dl>";
   if (hasPending) {
     Msg['body'] += "Pending:\n";
     spc = "";
@@ -128,7 +131,7 @@ function add_to_message(Msg,Items,Label) {
     Msg['htmlBody'] += '<dd style="font-style:italic;">(none)</dd>\n';
   }
   Msg['htmlBody'] += "</dl></td>";
-  Msg['htmlBody'] += "<td valign=\"top\" STYLE=\"color:#aaaaaa;text-decoration:line-through; padding: 8px;max-width: 300px;\"><dl>";
+  Msg['htmlBody'] += "<td valign=\"top\" STYLE=\"color:#aaaaaa;text-decoration:line-through; padding: 8px;max-width: 300px;background-color:#f8f8f8;\"><dl>";
   if (hasCompleted) {
     n = 0;
     Msg['body'] += "Completed:\n";
@@ -179,7 +182,8 @@ function weekly_report(ListName,Destination)
     to: Destination,
     subject: "Weekly Task Status: "+ListName,
     name: "Happy Tasks Robot",
-    htmlBody: "<div STYLE=\"background-color:rgba(1,.9,.4,.9);\"><p>Task statuses for the past and upcoming week.</p>\n<table>\n",
+    htmlBody: '<div STYLE="background-color:rgba(1,.9,.4,.9);"><p>Task statuses for the past and upcoming week.</p>\n'+
+    '<table style="border-spacing:6px;">\n',
     body:  "Task report for "+ListName+" during the past and upcoming week:\n"
   };
   //Logger.log(before.toISOString());
@@ -191,8 +195,8 @@ function weekly_report(ListName,Destination)
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':now.toISOString(), 'dueMax': later.toISOString()});
   items = tasks.getItems();
   message = add_to_message(message,items,"Upcoming Week");
-  message['htmlBody'] += "</table>\n";
   message['htmlBody'] += footer_text();
+  message['htmlBody'] += "</table>\n";
   message['htmlBody'] += "</div>";
   MailApp.sendEmail(message);
   Logger.log('Sent email:\n'+message['body']);
@@ -229,8 +233,8 @@ function daily_report(ListName,Destination)
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':before2.toISOString(), 'dueMax': before.toISOString()});
   items = tasks.getItems();
   message = add_to_message(message,items,"Yesterday's Schedule");
-  message['htmlBody'] += "</table>\n";
   message['htmlBody'] += footer_text();
+  message['htmlBody'] += "</table>\n";
   message['htmlBody'] += "</div>";
   //
   MailApp.sendEmail(message);
@@ -260,6 +264,3 @@ function add_tl(SomeName) {
   var created = Tasks.Tasklists.insert(newTaskList);
   return created;
 }
-
-
-//// eof ///
