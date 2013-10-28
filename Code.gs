@@ -13,31 +13,31 @@
 //    in my standard usage I call "send_all()" on a weekly trigger: every Friday at 4PM
 //
 
-var OFFICE = "kevin.bjorke@imgtec.com";
+var OFFICE = "kevin.bjorke@bigCo.com";
 var HOME = "kevin.bjorke+reports@gmail.com";
 
 function send_all() {
-  weekly_report("Caustic",OFFICE);
-  weekly_report("vuMondo",HOME);
-  weekly_report("Default List",HOME);
+  _weekly_report_("bigCo",OFFICE);
+  _weekly_report_("Project1",HOME);
+  _weekly_report_("Default List",HOME);
 }
 
 // single-list calls (mostly for debugging)
 function send_vmOnly() {
-  weekly_report("vuMondo",HOME);
+  _weekly_report_("Project1",HOME);
 }
-function send_cOnly() {
-  weekly_report("Caustic",OFFICE);
+function send_bOnly() {
+  _weekly_report_("bigCo",OFFICE);
 }
 function send_defOnly() {
-  weekly_report("Default List",HOME);
+  _weekly_report_("Default List",HOME);
 }
 
 // daily report -- in my usage, I set up FIVE weekly triggers, MTWTF at 9AM -- this report
 //     reminds my team &  I what needs to be done each morning
 
-function daily_caustic() {
-  daily_report("Caustic",OFFICE);
+function daily_bigCo() {
+  _daily_report_("bigCo",OFFICE);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ function daily_caustic() {
 //////////////////////////////////////////////////////////////////
 
 // accepts positive or negative Days counts
-function days_away(Days) {
+function _days_away_(Days) {
   var d = new Date();
   var n = d.valueOf() + 1000*3600*24*Days;
   return new Date(n);
@@ -54,7 +54,7 @@ function days_away(Days) {
 ////////////////////////////////////
 
 // look for a named list
-function list_by_name(ListName) {
+function _list_by_name_(ListName) {
   var allLists = Tasks.Tasklists.list().getItems();
   var id;
   for (var i in allLists) {
@@ -66,13 +66,13 @@ function list_by_name(ListName) {
 }
 
 // debugging function /////////////////////////
-function describe_task(T) {
+function _describe_task_(T) {
   Logger.log(T.getTitle());
   Logger.log('Due '+T.getDue());
 }
 
 // advertise //////////////////////
-function footer_text() {
+function _footer_text_() {
   var ft = '<tr align="center"><td style="background-color:#dddddd;margin-left:auto;margin-right:auto;padding:5px;font-size:smaller;font-style:italic;" colspan="2">';
   ft += 'Robots love to <a href="https://github.com/joker-b/Apps-Script-Task-Status-Reports" target="_blank">make more robots!</a> ';
   ft += 'Check out my GoogleApps projects.';
@@ -85,7 +85,7 @@ function footer_text() {
 //
 // look at the indicated item list and write both text and HTML fragments into the indicated message
 //
-function add_to_message(Msg,Items,Label) {
+function _add_to_message_(Msg,Items,Label) {
   if (Items == undefined) {
     return Msg;
   }
@@ -167,16 +167,16 @@ function add_to_message(Msg,Items,Label) {
 //
 // Send a report about the indicated taks list to the desintation email address
 //
-function weekly_report(ListName,Destination)
+function _weekly_report_(ListName,Destination)
 {
-  var listId = list_by_name(ListName);
+  var listId = _list_by_name_(ListName);
   if (!listId) {
     Logger.log("No such list");
     return;
   }
   var now = new Date();
-  var later = days_away(7);
-  var before = days_away(-7);
+  var later = _days_away_(7);
+  var before = _days_away_(-7);
   var i, n, c, t, tasks, items;
   var message = {
     to: Destination,
@@ -190,12 +190,12 @@ function weekly_report(ListName,Destination)
   // past week
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':before.toISOString(), 'dueMax': now.toISOString()});
   items = tasks.getItems();
-  message = add_to_message(message,items,"Past Week");
+  message = _add_to_message_(message,items,"Past Week");
   // upcoming week
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':now.toISOString(), 'dueMax': later.toISOString()});
   items = tasks.getItems();
-  message = add_to_message(message,items,"Upcoming Week");
-  message['htmlBody'] += footer_text();
+  message = _add_to_message_(message,items,"Upcoming Week");
+  message['htmlBody'] += _footer_text_();
   message['htmlBody'] += "</table>\n";
   message['htmlBody'] += "</div>";
   MailApp.sendEmail(message);
@@ -206,17 +206,18 @@ function weekly_report(ListName,Destination)
 //
 // Send a report about the indicated taks list to the desintation email address
 //
-function daily_report(ListName,Destination)
+function _daily_report_(ListName,Destination)
 {
-  var listId = list_by_name(ListName);
+  var listId = _list_by_name_(ListName);
   if (!listId) {
     Logger.log("No such list");
     return;
   }
   var now = new Date();
-  var later = days_away(1);
-  var before = days_away(-1);
-  var before2 = days_away(-2);
+  var lookBack2 = (now.getDay() == 1) ? -4 : -2;
+  var later = _days_away_(1);
+  var before = _days_away_(-1);
+  var before2 = _days_away_(lookBack2);
   var i, n, c, t, tasks, items;
   var message = {
     to: Destination,
@@ -229,11 +230,11 @@ function daily_report(ListName,Destination)
   // past week
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':before.toISOString(), 'dueMax': now.toISOString()});
   items = tasks.getItems();
-  message = add_to_message(message,items,"Today's Scheduled Tasks");
+  message = _add_to_message_(message,items,"Today's Scheduled Tasks");
   tasks = Tasks.Tasks.list(listId, {'showCompleted':true, 'dueMin':before2.toISOString(), 'dueMax': before.toISOString()});
   items = tasks.getItems();
-  message = add_to_message(message,items,"Yesterday's Schedule");
-  message['htmlBody'] += footer_text();
+  message = _add_to_message_(message,items,"Yesterday's Schedule");
+  message['htmlBody'] += _footer_text_();
   message['htmlBody'] += "</table>\n";
   message['htmlBody'] += "</div>";
   //
@@ -244,8 +245,8 @@ function daily_report(ListName,Destination)
 
 //////////////////////////////// eof //
 
-function add_tester(ListName) {
-  var id = list_by_name(ListName);
+function _add_tester_(ListName) {
+  var id = _list_by_name_(ListName);
   if (!id) {
     Logger.log("Tasklist not found"); 
   } else {
@@ -257,7 +258,7 @@ function add_tester(ListName) {
   return id;
 }
 
-function add_tl(SomeName) {
+function _add_TL_(SomeName) {
    var newTaskList = Tasks.newTaskList()
       .setTitle(SomeName);
   
