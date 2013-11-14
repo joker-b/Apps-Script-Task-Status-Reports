@@ -13,31 +13,36 @@
 //    in my standard usage I call "send_all()" on a weekly trigger: every Friday at 4PM
 //
 
-var OFFICE = "kevin.bjorke@bigCo.com";
-var HOME = "kevin.bjorke+reports@gmail.com";
+var OFFICE = "my_address@big_co.com";
+var HOME = "my_home_adress@gmail.com";
+
+var WORK_LIST = "Office";
+var PROJECT1 = "NewGarage";
+
+// daily report -- in my usage, I set up FIVE weekly triggers, MTWTF at 9AM -- this report
+//     reminds my team &  I what needs to be done each morning
+
+function daily_office() {
+  _daily_report_(WORK_LIST,OFFICE);
+}
+
+// weekly reports ////////
 
 function send_all() {
-  _weekly_report_("bigCo",OFFICE);
-  _weekly_report_("Project1",HOME);
+  _weekly_report_(WORK_LIST,OFFICE);
+  _weekly_report_(PROJECT1,HOME);
   _weekly_report_("Default List",HOME);
 }
 
 // single-list calls (mostly for debugging)
 function send_vmOnly() {
-  _weekly_report_("Project1",HOME);
+  _weekly_report_(PROJECT1,HOME);
 }
-function send_bOnly() {
-  _weekly_report_("bigCo",OFFICE);
+function send_cOnly() {
+  _weekly_report_(WORK_LIST,OFFICE);
 }
 function send_defOnly() {
   _weekly_report_("Default List",HOME);
-}
-
-// daily report -- in my usage, I set up FIVE weekly triggers, MTWTF at 9AM -- this report
-//     reminds my team &  I what needs to be done each morning
-
-function daily_bigCo() {
-  _daily_report_("bigCo",OFFICE);
 }
 
 //////////////////////////////////////////////////////////////////
@@ -82,6 +87,16 @@ function _footer_text_() {
 
 //////////////////////////////////////////////////////////
 
+// sort by name (and time?)
+// X and Y are Items!!!!
+function _sort_items(X,Y) {
+  var yt, xt, comp;
+  yt = Y.getTitle().toLowerCase();
+  xt = X.getTitle().toLowerCase();
+  comp = (xt>yt)?1:((yt>xt)?-1:0);
+  return (comp);
+}
+
 //
 // look at the indicated item list and write both text and HTML fragments into the indicated message
 //
@@ -92,35 +107,36 @@ function _add_to_message_(Msg,Items,Label) {
   if (Items.length == 0) {
     return Msg;
   }
+  var iSort = Items.sort(_sort_items);
   Msg['body'] += Label+":\n";
   Msg['htmlBody'] += "<tr><td style=\"background-color:#dddddd;font-weight:bolder;padding:5px;margin-left:auto;margin-right:auto;\" colspan=\"2\">"+Label+"</td></tr>\n";
   var n, i, t, c, desc, hasCompleted, hasPending, spc, cl;
   n = 0;
-  for (i=0; i<Items.length; i+=1) {
-    c = Items[i].getCompleted();
+  for (i=0; i<iSort.length; i+=1) {
+    c = iSort[i].getCompleted();
     if (c != undefined) {
       n += 1;
       break;
     }
   }
   hasCompleted = (n>0);
-  hasPending = ((Items.length-n)>0);
+  hasPending = ((iSort.length-n)>0);
   Msg['htmlBody'] += "<tr style=\"background-color:#eaeaea;font-style:italic;\"><th>Pending</th><th>Completed</th></tr>\n";
   Msg['htmlBody'] += "<tr>";
   Msg['htmlBody'] += "<td valign=\"top\" style=\"padding:8px;max-width:300px;background-color:#f8f8f8;\"><dl>";
   if (hasPending) {
     Msg['body'] += "Pending:\n";
     spc = "";
-    for (i=0; i<Items.length; i+=1) {
-      c = Items[i].getCompleted();
+    for (i=0; i<iSort.length; i+=1) {
+      c = iSort[i].getCompleted();
       if (c == undefined) {
-        t = Items[i].getTitle();
+        t = iSort[i].getTitle();
         Msg['body'] += "* "+t+"\n";
         if (t.match(/\[!\]/)) {
           t = "<span style=\"color:#bb0000;\">"+t+"</span>";
         }
         Msg['htmlBody'] += "<dt>"+t+"</dt>\n";
-        desc = Items[i].getNotes();
+        desc = iSort[i].getNotes();
         if ((desc != undefined) && (desc > "")) {
             Msg['htmlBody'] += "<dd style=\"color:#999999;font-style:italic;\">"+desc+"</dd>\n";
         }
@@ -135,10 +151,10 @@ function _add_to_message_(Msg,Items,Label) {
   if (hasCompleted) {
     n = 0;
     Msg['body'] += "Completed:\n";
-    for (i=0; i<Items.length; i+=1) {
-      c = Items[i].getCompleted();
+    for (i=0; i<iSort.length; i+=1) {
+      c = iSort[i].getCompleted();
       if (c != undefined) {
-        t = Items[i].getTitle();
+        t = iSort[i].getTitle();
         Msg['body'] += "* "+t+"\n";
         cl="#555555";
         if (t.match(/\[!\]/)) {
@@ -146,7 +162,7 @@ function _add_to_message_(Msg,Items,Label) {
         }
         t = "<span style=\"color:"+cl+";\">"+t+"</span>";
         Msg['htmlBody'] += "<dt>"+t+"</dt>\n";
-        desc = Items[i].getNotes();
+        desc = iSort[i].getNotes();
         if ((desc != undefined) && (desc > "")) {
             Msg['htmlBody'] += "<dd style=\"color:#999999;font-style:italic;\">"+desc+"</dd>\n";
         }
